@@ -8,22 +8,26 @@ import {
   LETTERS,
 } from "../const.js";
 
-const whitePawn = document.querySelector("#whitePawn");
-const blackPawn = document.querySelector("#blackPawn");
-
 import Cell from "./Cell.js";
 import Piece from "./Piece.js";
+import { blackPawn, whitePawn } from "../images.js";
 
 class Board {
   constructor(ctx) {
     this.ctx = ctx;
     this.boardData = {};
-    this.drawBoard();
+    this.init();
   }
 
-  drawBoard = () => {
+  init = () => {
     this.drawGrid();
     this.createBoardData();
+    this.colorGrid();
+    this.drawPieces();
+  };
+
+  draw = () => {
+    this.drawGrid();
     this.colorGrid();
     this.drawPieces();
   };
@@ -96,8 +100,8 @@ class Board {
 
   drawPieces = () => {
     Object.values(this.boardData).forEach((cell) => {
-      if (cell.currentPiece) {
-        if (cell.currentPiece.color === "black") {
+      if (cell.piece) {
+        if (cell.piece.color === "black") {
           this.ctx.drawImage(blackPawn, cell.x, cell.y, CELL_SIZE, CELL_SIZE);
         } else {
           this.ctx.drawImage(whitePawn, cell.x, cell.y, CELL_SIZE, CELL_SIZE);

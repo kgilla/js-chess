@@ -1,8 +1,8 @@
 class Cell {
-  constructor(x, y, currentPiece) {
+  constructor(x, y, piece) {
     this.x = x;
     this.y = y;
-    this.currentPiece = currentPiece;
+    this.piece = piece;
   }
 }
 
