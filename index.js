@@ -6,7 +6,7 @@ import {
   LETTERS,
 } from "./const.js";
 
-import { blackPawn, whitePawn } from "./images.js";
+import { images } from "./images.js";
 
 import Board from "./classes/Board.js";
 
@@ -22,6 +22,7 @@ ctx.lineWidth = LINE_WIDTH;
 
 const board = new Board(ctx);
 
+let currentPiece = "";
 let currentCell = "";
 let currentBoardState = {};
 let isDragging = false;
@@ -47,18 +48,20 @@ const handleMouseDown = (e) => {
     mouseX = clientX - rect.left;
     mouseY = clientY - rect.top;
     isDragging = true;
+    currentPiece = currentCell.piece;
   }
 };
 
 const handleMouseMove = (e) => {
   if (isDragging) {
+    currentCell.piece = "";
     const rect = e.target.getBoundingClientRect();
     const { clientX, clientY } = e;
     mouseX = clientX - rect.left;
     mouseY = clientY - rect.top;
     board.draw();
     ctx.drawImage(
-      whitePawn,
+      currentPiece.image,
       mouseX - CELL_SIZE / 2,
       mouseY - CELL_SIZE / 2,
       CELL_SIZE,
@@ -70,8 +73,7 @@ const handleMouseMove = (e) => {
 const handleMouseUp = (e) => {
   isDragging = false;
   const newCell = determineCell(e);
-  newCell.piece = currentCell.piece;
-  currentCell.piece = "";
+  newCell.piece = currentPiece;
   board.draw();
 };
 

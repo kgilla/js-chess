@@ -6,11 +6,15 @@ import {
   LINE_WIDTH,
   BOARD_COLORS,
   LETTERS,
+  PIECE_COLORS,
+  PIECE_TYPES,
+  PIECE_PLACES,
 } from "../const.js";
 
 import Cell from "./Cell.js";
 import Piece from "./Piece.js";
-import { blackPawn, whitePawn } from "../images.js";
+
+import { images } from "../images.js";
 
 class Board {
   constructor(ctx) {
@@ -59,21 +63,46 @@ class Board {
         const cell = new Cell(
           (x - 1) * CELL_SIZE,
           (y - 1) * CELL_SIZE,
-          this.isPiece(x, y) ? new Piece("pawn", this.isPiece(x, y)) : ""
+          y < 3 || y > 6 ? this.createPiece(x, y) : ""
         );
         this.boardData[LETTERS[x] + y] = cell;
       }
     }
-    console.log(this.boardData);
   };
 
-  isPiece = (x, y) => {
-    if (y === 1 || y === 2) {
-      return "black";
-    } else if (y === 7 || y === 8) {
-      return "white";
+  createPiece = (x, y) => {
+    if (y === 2 || y == 7) {
+      return new Piece(
+        PIECE_TYPES.pawn,
+        y === 2 ? PIECE_COLORS.black : PIECE_COLORS.white
+      );
     } else {
-      return;
+      if (x === 1 || x === 8) {
+        return new Piece(
+          PIECE_TYPES.rook,
+          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+        );
+      } else if (x === 2 || x == 7) {
+        return new Piece(
+          PIECE_TYPES.knight,
+          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+        );
+      } else if (x === 3 || x === 6) {
+        return new Piece(
+          PIECE_TYPES.bishop,
+          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+        );
+      } else if (x === 4) {
+        return new Piece(
+          PIECE_TYPES.king,
+          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+        );
+      } else {
+        return new Piece(
+          PIECE_TYPES.queen,
+          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+        );
+      }
     }
   };
 
@@ -99,13 +128,16 @@ class Board {
   };
 
   drawPieces = () => {
+    console.log(this.boardData);
     Object.values(this.boardData).forEach((cell) => {
-      if (cell.piece) {
-        if (cell.piece.color === "black") {
-          this.ctx.drawImage(blackPawn, cell.x, cell.y, CELL_SIZE, CELL_SIZE);
-        } else {
-          this.ctx.drawImage(whitePawn, cell.x, cell.y, CELL_SIZE, CELL_SIZE);
-        }
+      if (cell.piece.image) {
+        this.ctx.drawImage(
+          cell.piece.image,
+          cell.x,
+          cell.y,
+          CELL_SIZE,
+          CELL_SIZE
+        );
       }
     });
   };
