@@ -5,7 +5,6 @@ import {
   CELL_COUNT,
   LINE_WIDTH,
   BOARD_COLORS,
-  LETTERS,
   PIECE_COLORS,
   PIECE_TYPES,
 } from "../const.js";
@@ -18,6 +17,7 @@ class Board {
     this.ctx = ctx;
     this.data = {};
     this.init();
+    this.highlightedCells = [];
   }
 
   init = () => {
@@ -81,17 +81,17 @@ class Board {
           PIECE_TYPES.rook,
           y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
-      } else if (x === 2 || x == 7) {
+      } else if (x === 1 || x == 6) {
         return new Piece(
           PIECE_TYPES.knight,
           y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
-      } else if (x === 3 || x === 6) {
+      } else if (x === 2 || x === 5) {
         return new Piece(
           PIECE_TYPES.bishop,
           y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
-      } else if (x === 4) {
+      } else if (x === 3) {
         return new Piece(
           PIECE_TYPES.king,
           y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
@@ -111,8 +111,14 @@ class Board {
       const { x, y } = cell;
       const xEven = (x / CELL_SIZE) % 2;
       const yEven = (y / CELL_SIZE) % 2;
-      const color = xEven === yEven ? BOARD_COLORS.white : BOARD_COLORS.black;
-
+      const color =
+        xEven === yEven
+          ? cell.isHighlighted
+            ? "orange"
+            : BOARD_COLORS.white
+          : cell.isHighlighted
+          ? "orange"
+          : BOARD_COLORS.black;
       this.ctx.beginPath();
       this.ctx.rect(
         x + LINE_WIDTH,
@@ -145,10 +151,22 @@ class Board {
     });
   };
 
-  showLegalMoves = (cell) => {
+  highlightMoves = (cell) => {
     if (!cell.piece) return;
-    const moves = cell.piece.showMoves(cell);
-    console.log(moves);
+    const moveData = cell.piece.showMoves(cell);
+    for (const [direction, moves] of Object.entries(moveData)) {
+      moves.forEach((move) => {
+        const cell = this.data[move.join("")];
+        cell.isHighlighted = true;
+        this.highlightedCells.push(cell);
+      });
+    }
+  };
+
+  removeHighlights = () => {
+    this.highlightedCells.forEach((cell) => {
+      cell.isHighlighted = false;
+    });
   };
 }
 

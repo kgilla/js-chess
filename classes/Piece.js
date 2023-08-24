@@ -1,5 +1,11 @@
 import { images } from "../images.js";
-import { PIECE_TYPES, CELL_COUNT, PIECE_COLORS, DIRECTIONS } from "../const.js";
+import {
+  PIECE_TYPES,
+  CELL_COUNT,
+  PIECE_COLORS,
+  DIRECTIONS,
+  KNIGHT_DIRECTIONS,
+} from "../const.js";
 
 class Piece {
   constructor(type, color) {
@@ -29,13 +35,28 @@ class Piece {
     southEast: (x, y) => [x + 1, y + 1],
   };
 
+  // Seperate functions for knight movement
+  knightDirectionFunctions = {
+    northWest: (x, y) => [x - 1, y - 2],
+    northEast: (x, y) => [x + 1, y - 2],
+    southWest: (x, y) => [x - 1, y + 2],
+    southEast: (x, y) => [x + 1, y + 2],
+    eastNorth: (x, y) => [x + 2, y - 1],
+    eastSouth: (x, y) => [x + 2, y + 1],
+    westNorth: (x, y) => [x - 2, y - 1],
+    westSouth: (x, y) => [x - 2, y + 1],
+  };
+
   // Seperate move calulations for knight
   calculateKnightMoves = (start) => {
-    console.log("knight");
+    let moves = {};
+
+    for (let i = 0; i < 8; i++) {}
   };
 
   //Creates move array based on direction and number of potential moves within the confines of the board
-  calculateMoves = (start, moveArray) => {
+  calculateMoves = (start, moveArray, isKnight = false) => {
+    console.log(isKnight);
     if (moveArray.length < 1) return;
 
     const { x, y } = start;
@@ -44,12 +65,16 @@ class Piece {
 
     moveArray.forEach((moveData) => {
       const [moveDirection, amount] = moveData;
-      const nextMove = this.directionFunctions[moveDirection](x, y);
+      const nextMove = isKnight
+        ? this.knightDirectionFunctions[moveDirection](x, y)
+        : this.directionFunctions[moveDirection](x, y);
       if (this.insideBounds(nextMove)) {
         if (amount > 1) {
           for (let i = 0; i < amount; i++) {
             if (i === 0) {
-              const nextMove = this.directionFunctions[moveDirection](x, y);
+              const nextMove = isKnight
+                ? this.knightDirectionFunctions[moveDirection](x, y)
+                : this.directionFunctions[moveDirection](x, y);
               if (this.insideBounds(nextMove)) {
                 !moves[moveDirection]
                   ? (moves[moveDirection] = [nextMove])
@@ -90,60 +115,52 @@ class Piece {
       // Pawn
       if (this.color === PIECE_COLORS.white) {
         return this.calculateMoves(currentCell.coords, [
-          [DIRECTIONS.north, 2],
+          [DIRECTIONS.north, this.moveCount === 0 ? 2 : 1],
           [DIRECTIONS.northEast, 1],
           [DIRECTIONS.northWest, 1],
         ]);
       } else {
         return this.calculateMoves(currentCell.coords, [
-          [DIRECTIONS.south, 2],
+          [DIRECTIONS.south, this.moveCount === 0 ? 2 : 1],
           [DIRECTIONS.southEast, 1],
           [DIRECTIONS.southWest, 1],
         ]);
       }
     } else if (this.type === PIECE_TYPES.rook) {
       // Rook
-      return this.calculateMoves(currentCell.coords, [
-        [DIRECTIONS.south, CELL_COUNT],
-        [DIRECTIONS.north, CELL_COUNT],
-        [DIRECTIONS.east, CELL_COUNT],
-        [DIRECTIONS.west, CELL_COUNT],
-      ]);
+      return this.calculateMoves(
+        currentCell.coords,
+        Object.values(DIRECTIONS)
+          .slice(0, 4)
+          .map((dir) => [dir, CELL_COUNT])
+      );
     } else if (this.type === PIECE_TYPES.knight) {
       // Knight
-      this.calculateKnightMoves(currentCell.coords);
+      return this.calculateMoves(
+        currentCell.coords,
+        Object.values(KNIGHT_DIRECTIONS).map((dir) => [dir, 1]),
+        true
+      );
     } else if (this.type === PIECE_TYPES.bishop) {
       // Bishop
-      return this.calculateMoves(currentCell.coords, [
-        [DIRECTIONS.southEast, CELL_COUNT],
-        [DIRECTIONS.northEast, CELL_COUNT],
-        [DIRECTIONS.southWest, CELL_COUNT],
-        [DIRECTIONS.southEast, CELL_COUNT],
-      ]);
+      return this.calculateMoves(
+        currentCell.coords,
+        Object.values(DIRECTIONS)
+          .slice(4, 8)
+          .map((dir) => [dir, CELL_COUNT])
+      );
     } else if (this.type === PIECE_TYPES.king) {
       // King
-      return this.calculateMoves(currentCell.coords, [
-        [DIRECTIONS.south, 1],
-        [DIRECTIONS.north, 1],
-        [DIRECTIONS.east, 1],
-        [DIRECTIONS.west, 1],
-        [DIRECTIONS.southEast, 1],
-        [DIRECTIONS.northEast, 1],
-        [DIRECTIONS.southWest, 1],
-        [DIRECTIONS.southEast, 1],
-      ]);
+      return this.calculateMoves(
+        currentCell.coords,
+        Object.values(DIRECTIONS).map((dir) => [dir, 1])
+      );
     } else if (this.type === PIECE_TYPES.queen) {
       // Queen
-      return this.calculateMoves(currentCell.coords, [
-        [DIRECTIONS.south, CELL_COUNT],
-        [DIRECTIONS.north, CELL_COUNT],
-        [DIRECTIONS.east, CELL_COUNT],
-        [DIRECTIONS.west, CELL_COUNT],
-        [DIRECTIONS.southEast, CELL_COUNT],
-        [DIRECTIONS.northEast, CELL_COUNT],
-        [DIRECTIONS.southWest, CELL_COUNT],
-        [DIRECTIONS.southEast, CELL_COUNT],
-      ]);
+      return this.calculateMoves(
+        currentCell.coords,
+        Object.values(DIRECTIONS).map((dir) => [dir, CELL_COUNT])
+      );
     }
   };
 }

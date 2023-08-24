@@ -10,20 +10,20 @@ class Game {
     this.moveHistory = [];
   }
 
-  isLegalMove = (piece) => {
-    if (piece.color === this.turn) {
-      return true;
-    } else {
-      return false;
-    }
-  };
+  // isLegalMove = (piece) => {
+  //   if (piece.color === this.turn) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // };
 
-  handleMove = () => {
-    this.turn =
-      this.turn === PIECE_COLORS.white
-        ? PIECE_COLORS.black
-        : PIECE_COLORS.white;
-  };
+  // handleMove = () => {
+  //   this.turn =
+  //     this.turn === PIECE_COLORS.white
+  //       ? PIECE_COLORS.black
+  //       : PIECE_COLORS.white;
+  // };
 
   clearState = () => {
     this.currentPiece = "";

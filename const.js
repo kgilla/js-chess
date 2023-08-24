@@ -8,6 +8,8 @@ export const CELL_SIZE = CANVAS_HEIGHT / CELL_COUNT;
 export const BOARD_COLORS = {
   white: "#ffffff",
   black: "#229954",
+  whiteHighlight: "",
+  blackHighlight: "",
 };
 
 export const PIECE_COLORS = {
@@ -44,4 +46,15 @@ export const DIRECTIONS = {
   northEast: "northEast",
   southWest: "southWest",
   southEast: "southEast",
+};
+
+export const KNIGHT_DIRECTIONS = {
+  northWest: "northWest",
+  northEast: "northEast",
+  southWest: "southWest",
+  southEast: "southEast",
+  eastNorth: "eastNorth",
+  eastSouth: "eastSouth",
+  westNorth: "westNorth",
+  westSouth: "westSouth",
 };

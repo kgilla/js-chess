@@ -1,10 +1,4 @@
-import {
-  CANVAS_WIDTH,
-  CANVAS_HEIGHT,
-  LINE_WIDTH,
-  CELL_SIZE,
-  LETTERS,
-} from "./const.js";
+import { CANVAS_WIDTH, CANVAS_HEIGHT, LINE_WIDTH, CELL_SIZE } from "./const.js";
 
 import Board from "./classes/Board.js";
 import Game from "./classes/Game.js";
@@ -38,7 +32,7 @@ const handleMouseDown = (e) => {
   if (game.currentCell.piece) {
     game.isDragging = true;
     game.currentPiece = game.currentCell.piece;
-    board.showLegalMoves(game.currentCell);
+    board.highlightMoves(game.currentCell);
   }
 };
 
@@ -62,6 +56,7 @@ const handleMouseUp = (e) => {
   game.currentCell.piece = "";
   game.currentPiece.isHidden = false;
   newCell.piece = game.currentPiece;
+  board.removeHighlights();
   board.draw();
   game.clearState();
 };
