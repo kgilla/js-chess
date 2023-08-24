@@ -65,7 +65,6 @@ class Board {
         this.data[`${x}${y}`] = cell;
       }
     }
-    console.log(this.data);
   };
 
   // Creates pieces
@@ -151,16 +150,12 @@ class Board {
     });
   };
 
-  highlightMoves = (cell) => {
-    if (!cell.piece) return;
-    const moveData = cell.piece.showMoves(cell);
-    for (const [direction, moves] of Object.entries(moveData)) {
-      moves.forEach((move) => {
-        const cell = this.data[move.join("")];
-        cell.isHighlighted = true;
-        this.highlightedCells.push(cell);
-      });
-    }
+  // Creates an array of cells to highlight to show the user where piece can move
+  highlightMoves = (legalMoves) => {
+    legalMoves.forEach((cell) => {
+      cell.isHighlighted = true;
+      this.highlightedCells.push(cell);
+    });
   };
 
   removeHighlights = () => {

@@ -47,16 +47,8 @@ class Piece {
     westSouth: (x, y) => [x - 2, y + 1],
   };
 
-  // Seperate move calulations for knight
-  calculateKnightMoves = (start) => {
-    let moves = {};
-
-    for (let i = 0; i < 8; i++) {}
-  };
-
   //Creates move array based on direction and number of potential moves within the confines of the board
   calculateMoves = (start, moveArray, isKnight = false) => {
-    console.log(isKnight);
     if (moveArray.length < 1) return;
 
     const { x, y } = start;
