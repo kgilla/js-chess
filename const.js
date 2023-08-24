@@ -24,17 +24,6 @@ export const PIECE_TYPES = {
   queen: "queen",
 };
 
-export const PIECE_PLACES = {
-  a: PIECE_TYPES.rook,
-  b: PIECE_TYPES.knight,
-  c: PIECE_TYPES.bishop,
-  d: PIECE_TYPES.king,
-  e: PIECE_TYPES.queen,
-  f: PIECE_TYPES.bishop,
-  g: PIECE_TYPES.knight,
-  h: PIECE_TYPES.rook,
-};
-
 export const LETTERS = {
   1: "a",
   2: "b",

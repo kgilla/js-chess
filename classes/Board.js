@@ -8,18 +8,15 @@ import {
   LETTERS,
   PIECE_COLORS,
   PIECE_TYPES,
-  PIECE_PLACES,
 } from "../const.js";
 
 import Cell from "./Cell.js";
 import Piece from "./Piece.js";
 
-import { images } from "../images.js";
-
 class Board {
   constructor(ctx) {
     this.ctx = ctx;
-    this.boardData = {};
+    this.data = {};
     this.init();
   }
 
@@ -31,6 +28,7 @@ class Board {
   };
 
   draw = () => {
+    this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.drawGrid();
     this.colorGrid();
     this.drawPieces();
@@ -62,52 +60,53 @@ class Board {
       for (let y = 1; y < CELL_COUNT + 1; y++) {
         const cell = new Cell(
           (x - 1) * CELL_SIZE,
-          (y - 1) * CELL_SIZE,
+          CANVAS_HEIGHT - CELL_SIZE * y,
           y < 3 || y > 6 ? this.createPiece(x, y) : ""
         );
-        this.boardData[LETTERS[x] + y] = cell;
+        this.data[LETTERS[x] + y] = cell;
       }
     }
+    console.log(this.data);
   };
 
   createPiece = (x, y) => {
     if (y === 2 || y == 7) {
       return new Piece(
         PIECE_TYPES.pawn,
-        y === 2 ? PIECE_COLORS.black : PIECE_COLORS.white
+        y === 7 ? PIECE_COLORS.black : PIECE_COLORS.white
       );
     } else {
       if (x === 1 || x === 8) {
         return new Piece(
           PIECE_TYPES.rook,
-          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 2 || x == 7) {
         return new Piece(
           PIECE_TYPES.knight,
-          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 3 || x === 6) {
         return new Piece(
           PIECE_TYPES.bishop,
-          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 4) {
         return new Piece(
           PIECE_TYPES.king,
-          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else {
         return new Piece(
           PIECE_TYPES.queen,
-          y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       }
     }
   };
 
   colorGrid = () => {
-    Object.values(this.boardData).forEach((cell) => {
+    Object.values(this.data).forEach((cell) => {
       const xEven = (cell.x / CELL_SIZE) % 2;
       const yEven = (cell.y / CELL_SIZE) % 2;
       const color = xEven === yEven ? BOARD_COLORS.white : BOARD_COLORS.black;
@@ -128,18 +127,22 @@ class Board {
   };
 
   drawPieces = () => {
-    console.log(this.boardData);
-    Object.values(this.boardData).forEach((cell) => {
-      if (cell.piece.image) {
+    for (const [key, cell] of Object.entries(this.data)) {
+      if (cell.piece.image && !cell.piece.isHidden) {
         this.ctx.drawImage(
           cell.piece.image,
           cell.x,
           cell.y,
-          CELL_SIZE,
-          CELL_SIZE
+          CELL_SIZE - 5,
+          CELL_SIZE - 5
         );
       }
-    });
+
+      // Added text for debugging
+      this.ctx.fillStyle = "#000";
+      this.ctx.font = "12px Arial";
+      this.ctx.fillText(key, cell.x + 2, cell.y + CELL_SIZE / CELL_COUNT);
+    }
   };
 }
 
