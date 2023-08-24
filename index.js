@@ -6,6 +6,7 @@ const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
 const resetButton = document.querySelector("#reset");
+const turn = document.querySelector("#turn");
 
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
@@ -27,6 +28,7 @@ const determineCell = (e) => {
 
 // Event Handlers
 const handleMouseDown = (e) => {
+  if (e.which !== 1) return;
   game.currentCell = determineCell(e);
   if (game.currentCell.piece && game.currentCell.piece.color === game.turn) {
     isDragging = true;
@@ -63,12 +65,16 @@ const handleMouseUp = (e) => {
   game.board.removeHighlights();
   game.board.draw();
   game.clearState();
-
+  updateUI();
   console.log(game.board.data);
 };
 
-const resetBoard = () => {
-  game.clearState();
+const newGame = () => {
+  game = new Game(ctx);
+};
+
+const updateUI = () => {
+  turn.textContent = game.turn;
 };
 
 // Event Listeners
@@ -76,4 +82,4 @@ canvas.addEventListener("mousedown", handleMouseDown);
 canvas.addEventListener("mousemove", handleMouseMove);
 canvas.addEventListener("mouseup", handleMouseUp);
 
-resetButton.addEventListener("click", resetBoard);
+resetButton.addEventListener("click", newGame);
