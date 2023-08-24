@@ -34,10 +34,10 @@ class Board {
     this.drawPieces();
   };
 
+  // Draws grid based on canvas size
   drawGrid = () => {
     this.ctx.strokeStyle = "#000";
 
-    // draws x axis
     for (let x = 0; x < CELL_COUNT + 1; x++) {
       this.ctx.beginPath();
       this.ctx.moveTo(x * CELL_SIZE, 0);
@@ -45,7 +45,6 @@ class Board {
       this.ctx.stroke();
     }
 
-    // draws y axis
     for (let y = 0; y < CELL_COUNT + 1; y++) {
       this.ctx.beginPath();
       this.ctx.moveTo(0, y * CELL_SIZE);
@@ -54,80 +53,81 @@ class Board {
     }
   };
 
+  // Creates board data cells containing cells and pieces
   createBoardData = () => {
-    // creates board data cells
-    for (let x = 1; x < CELL_COUNT + 1; x++) {
-      for (let y = 1; y < CELL_COUNT + 1; y++) {
+    for (let x = 0; x < CELL_COUNT; x++) {
+      for (let y = 0; y < CELL_COUNT; y++) {
         const cell = new Cell(
-          (x - 1) * CELL_SIZE,
-          CANVAS_HEIGHT - CELL_SIZE * y,
-          y < 3 || y > 6 ? this.createPiece(x, y) : ""
+          x * CELL_SIZE,
+          y * CELL_SIZE,
+          y < 2 || y > 5 ? this.createPiece(x, y) : ""
         );
-        this.data[LETTERS[x] + y] = cell;
+        this.data[`${x}${y}`] = cell;
       }
     }
     console.log(this.data);
   };
 
+  // Creates pieces
   createPiece = (x, y) => {
-    if (y === 2 || y == 7) {
+    if (y === 1 || y == 6) {
       return new Piece(
         PIECE_TYPES.pawn,
-        y === 7 ? PIECE_COLORS.black : PIECE_COLORS.white
+        y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white
       );
     } else {
-      if (x === 1 || x === 8) {
+      if (x === 0 || x === 7) {
         return new Piece(
           PIECE_TYPES.rook,
-          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 2 || x == 7) {
         return new Piece(
           PIECE_TYPES.knight,
-          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 3 || x === 6) {
         return new Piece(
           PIECE_TYPES.bishop,
-          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else if (x === 4) {
         return new Piece(
           PIECE_TYPES.king,
-          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       } else {
         return new Piece(
           PIECE_TYPES.queen,
-          y === 8 ? PIECE_COLORS.black : PIECE_COLORS.white
+          y === 0 ? PIECE_COLORS.black : PIECE_COLORS.white
         );
       }
     }
   };
 
+  // Fills cells to create checkerboard
   colorGrid = () => {
     Object.values(this.data).forEach((cell) => {
-      const xEven = (cell.x / CELL_SIZE) % 2;
-      const yEven = (cell.y / CELL_SIZE) % 2;
+      const { x, y } = cell;
+      const xEven = (x / CELL_SIZE) % 2;
+      const yEven = (y / CELL_SIZE) % 2;
       const color = xEven === yEven ? BOARD_COLORS.white : BOARD_COLORS.black;
-      this.fillCell(cell.x, cell.y, color);
+
+      this.ctx.beginPath();
+      this.ctx.rect(
+        x + LINE_WIDTH,
+        y + LINE_WIDTH,
+        CELL_SIZE - LINE_WIDTH * 2,
+        CELL_SIZE - LINE_WIDTH * 2
+      );
+      this.ctx.fillStyle = color;
+      this.ctx.fill();
     });
   };
 
-  fillCell = (x, y, color) => {
-    this.ctx.beginPath();
-    this.ctx.rect(
-      x + LINE_WIDTH,
-      y + LINE_WIDTH,
-      CELL_SIZE - LINE_WIDTH * 2,
-      CELL_SIZE - LINE_WIDTH * 2
-    );
-    this.ctx.fillStyle = color;
-    this.ctx.fill();
-  };
-
+  // Draws pieces and text on board
   drawPieces = () => {
-    for (const [key, cell] of Object.entries(this.data)) {
+    Object.values(this.data).forEach((cell) => {
       if (cell.piece.image && !cell.piece.isHidden) {
         this.ctx.drawImage(
           cell.piece.image,
@@ -138,11 +138,17 @@ class Board {
         );
       }
 
-      // Added text for debugging
+      // Added text to cells for debugging
       this.ctx.fillStyle = "#000";
       this.ctx.font = "12px Arial";
-      this.ctx.fillText(key, cell.x + 2, cell.y + CELL_SIZE / CELL_COUNT);
-    }
+      this.ctx.fillText(cell.text, cell.x + 2, cell.y + CELL_SIZE / CELL_COUNT);
+    });
+  };
+
+  showLegalMoves = (cell) => {
+    if (!cell.piece) return;
+    const moves = cell.piece.showMoves(cell);
+    console.log(moves);
   };
 }
 

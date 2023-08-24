@@ -25,10 +25,10 @@ const game = new Game();
 const determineCell = (e) => {
   const rect = e.target.getBoundingClientRect();
   const { clientX, clientY } = e;
-  const x = Math.floor((clientX - rect.left) / CELL_SIZE) + 1;
-  const y = Math.floor((clientY - rect.bottom) / CELL_SIZE) * -1;
-  console.log(y);
-  const cell = board.data[LETTERS[x] + y];
+  const x = Math.floor((clientX - rect.left) / CELL_SIZE);
+  const y = Math.floor((clientY - rect.top) / CELL_SIZE);
+  const cell = board.data[`${x}${y}`];
+  console.log(cell);
   return cell;
 };
 
@@ -38,6 +38,7 @@ const handleMouseDown = (e) => {
   if (game.currentCell.piece) {
     game.isDragging = true;
     game.currentPiece = game.currentCell.piece;
+    board.showLegalMoves(game.currentCell);
   }
 };
 
@@ -58,7 +59,6 @@ const handleMouseUp = (e) => {
   const newCell = determineCell(e);
 
   // should check if move is legal
-  game.currentPiece.showMoves(game.currentCell, newCell, game.currentPiece);
   game.currentCell.piece = "";
   game.currentPiece.isHidden = false;
   newCell.piece = game.currentPiece;

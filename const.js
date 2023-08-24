@@ -25,12 +25,23 @@ export const PIECE_TYPES = {
 };
 
 export const LETTERS = {
-  1: "a",
-  2: "b",
-  3: "c",
-  4: "d",
-  5: "e",
-  6: "f",
-  7: "g",
-  8: "h",
+  0: "A",
+  1: "B",
+  2: "C",
+  3: "D",
+  4: "E",
+  5: "F",
+  6: "G",
+  7: "H",
+};
+
+export const DIRECTIONS = {
+  north: "north",
+  south: "south",
+  east: "east",
+  west: "west",
+  northWest: "northWest",
+  northEast: "northEast",
+  southWest: "southWest",
+  southEast: "southEast",
 };
