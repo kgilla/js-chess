@@ -27,33 +27,34 @@ class Game {
     for (const [direction, moves] of Object.entries(moveData)) {
       moves.forEach((move) => {
         const cellToTest = this.board.data[move.join("")];
+        let data = { cell: cellToTest, isTake: false };
         if (this.currentPiece.type === PIECE_TYPES.pawn) {
           if (
             direction === DIRECTIONS.north ||
             direction === DIRECTIONS.south
           ) {
-            legalMoves.push(cellToTest);
+            legalMoves.push(data);
           } else if (
             cellToTest.piece &&
             cellToTest.piece.color !== this.currentPiece.color
           ) {
-            legalMoves.push(cellToTest);
+            legalMoves.push({ ...data, isTake: true });
           }
         } else {
           if (cellToTest.piece && currentDirection !== direction) {
             if (cellToTest.piece.color !== this.currentPiece.color) {
-              legalMoves.push(cellToTest);
+              legalMoves.push({ ...data, isTake: true });
             }
             currentDirection = direction;
           } else if (currentDirection !== direction) {
-            legalMoves.push(cellToTest);
+            legalMoves.push(data);
           }
         }
       });
     }
 
     this.board.highlightMoves(legalMoves);
-    this.legalMoves = legalMoves;
+    this.legalMoves = legalMoves.map((move) => move.cell);
   };
 
   handleTurnFinish = () => {

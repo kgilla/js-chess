@@ -6,10 +6,10 @@ export const CELL_COUNT = 8;
 export const CELL_SIZE = CANVAS_HEIGHT / CELL_COUNT;
 
 export const BOARD_COLORS = {
-  white: "#ffffff",
-  black: "#229954",
-  whiteHighlight: "",
-  blackHighlight: "",
+  white: "#eeeed2",
+  black: "#769656",
+  highlight: "#566573",
+  take: "#E74C3C",
 };
 
 export const PIECE_COLORS = {

@@ -5,9 +5,6 @@ import Game from "./classes/Game.js";
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
 
-const resetButton = document.querySelector("#reset");
-const turn = document.querySelector("#turn");
-
 canvas.width = CANVAS_WIDTH;
 canvas.height = CANVAS_HEIGHT;
 
@@ -50,6 +47,7 @@ const handleMouseMove = (e) => {
 };
 
 const handleMouseUp = (e) => {
+  if (!game.currentPiece || !game.currentCell) return;
   isDragging = false;
   const newCell = determineCell(e);
   if (game.legalMoves.some((move) => move === newCell)) {
@@ -65,21 +63,13 @@ const handleMouseUp = (e) => {
   game.board.removeHighlights();
   game.board.draw();
   game.clearState();
-  updateUI();
-  console.log(game.board.data);
 };
 
 const newGame = () => {
   game = new Game(ctx);
 };
 
-const updateUI = () => {
-  turn.textContent = game.turn;
-};
-
 // Event Listeners
 canvas.addEventListener("mousedown", handleMouseDown);
 canvas.addEventListener("mousemove", handleMouseMove);
 canvas.addEventListener("mouseup", handleMouseUp);
-
-resetButton.addEventListener("click", newGame);
