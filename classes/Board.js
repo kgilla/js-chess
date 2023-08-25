@@ -123,6 +123,10 @@ class Board {
     });
   };
 
+  drawCursorImage = (image, x, y) => {
+    this.ctx.drawImage(image, x, y, CELL_SIZE - 5, CELL_SIZE - 5);
+  };
+
   fillText = (text, x, y, cell) => {
     this.ctx.fillStyle =
       cell.color === BOARD_COLORS.white

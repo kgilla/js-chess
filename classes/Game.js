@@ -6,6 +6,7 @@ class Game {
   constructor(ctx) {
     this.board = new Board(ctx);
     this.turn = PIECE_COLORS.white;
+    this.isDragging = false;
     this.currentCell = "";
     this.currentPiece = "";
     this.moveHistory = [];
@@ -71,6 +72,42 @@ class Game {
   clearState = () => {
     this.currentPiece = "";
     this.currentCell = "";
+  };
+
+  handleMouseDown = (x, y) => {
+    const cell = this.board.data[`${x}${y}`];
+    this.currentCell = cell;
+    if (cell.piece && cell.piece.color === this.turn) {
+      this.isDragging = true;
+      this.currentPiece = this.currentCell.piece;
+      this.createLegalMoves();
+    }
+  };
+
+  handleMouseMove = (x, y) => {
+    if (!this.isDragging) return;
+    this.currentPiece.isHidden = true;
+    this.board.draw();
+    this.board.drawCursorImage(this.currentPiece.image, x, y);
+  };
+
+  handleMouseUp = (x, y) => {
+    this.isDragging = false;
+    const newCell = this.board.data[`${x}${y}`];
+    console.log(newCell);
+    if (this.legalMoves.some((move) => move === newCell)) {
+      this.currentCell.piece = "";
+      this.currentPiece.isHidden = false;
+      newCell.piece = this.currentPiece;
+      this.board.removeHighlights();
+      this.board.draw();
+      this.handleTurnFinish();
+    } else {
+      if (this.currentPiece) this.currentPiece.isHidden = false;
+      this.board.removeHighlights();
+      this.board.draw();
+    }
+    this.clearState();
   };
 }
 

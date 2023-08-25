@@ -10,63 +10,38 @@ canvas.height = CANVAS_HEIGHT;
 
 ctx.lineWidth = LINE_WIDTH;
 
-let isDragging = false;
-
 const game = new Game(ctx);
 
-const determineCell = (e) => {
+const determineCoords = (e, cell = false) => {
   const rect = e.target.getBoundingClientRect();
   const { clientX, clientY } = e;
-  const x = Math.floor((clientX - rect.left) / CELL_SIZE);
-  const y = Math.floor((clientY - rect.top) / CELL_SIZE);
-  const cell = game.board.data[`${x}${y}`];
-  return cell;
+
+  if (cell) {
+    const x = Math.floor((clientX - rect.left) / CELL_SIZE);
+    const y = Math.floor((clientY - rect.top) / CELL_SIZE);
+    return { x, y };
+  } else {
+    const x = clientX - rect.left - CELL_SIZE / 2;
+    const y = clientY - rect.top - CELL_SIZE / 2;
+    return { x, y };
+  }
 };
 
 // Event Handlers
 const handleMouseDown = (e) => {
   if (e.which !== 1) return;
-  game.currentCell = determineCell(e);
-  if (game.currentCell.piece && game.currentCell.piece.color === game.turn) {
-    isDragging = true;
-    game.currentPiece = game.currentCell.piece;
-    game.createLegalMoves();
-  }
+  const { x, y } = determineCoords(e, true);
+  game.handleMouseDown(x, y);
 };
 
 const handleMouseMove = (e) => {
-  if (isDragging) {
-    game.currentCell.piece.isHidden = true;
-    const rect = e.target.getBoundingClientRect();
-    const { clientX, clientY } = e;
-    const x = clientX - rect.left - CELL_SIZE / 2;
-    const y = clientY - rect.top - CELL_SIZE / 2;
-    game.board.draw();
-    ctx.drawImage(game.currentPiece.image, x, y, CELL_SIZE - 5, CELL_SIZE - 5);
-  }
+  const { x, y } = determineCoords(e);
+  game.handleMouseMove(x, y);
 };
 
 const handleMouseUp = (e) => {
-  if (!game.currentPiece || !game.currentCell) return;
-  isDragging = false;
-  const newCell = determineCell(e);
-  if (game.legalMoves.some((move) => move === newCell)) {
-    game.currentCell.piece = "";
-    game.currentPiece.isHidden = false;
-    newCell.piece = game.currentPiece;
-    game.board.removeHighlights();
-    game.board.draw();
-    game.handleTurnFinish();
-  } else {
-    if (game.currentPiece) game.currentPiece.isHidden = false;
-  }
-  game.board.removeHighlights();
-  game.board.draw();
-  game.clearState();
-};
-
-const newGame = () => {
-  game = new Game(ctx);
+  const { x, y } = determineCoords(e, true);
+  game.handleMouseUp(x, y);
 };
 
 // Event Listeners
