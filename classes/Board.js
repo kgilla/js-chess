@@ -1,9 +1,5 @@
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  CELL_SIZE,
   CELL_COUNT,
-  LINE_WIDTH,
   BOARD_COLORS,
   PIECE_COLORS,
   PIECE_TYPES,
@@ -16,8 +12,9 @@ class Board {
   constructor(ctx) {
     this.ctx = ctx;
     this.data = {};
-    this.init();
     this.highlightedCells = [];
+    this.cellSize = () => this.ctx.canvas.width / CELL_COUNT;
+    this.init();
   }
 
   init = () => {
@@ -27,7 +24,7 @@ class Board {
   };
 
   draw = () => {
-    this.ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+    this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.drawBoard();
     this.drawPieces();
   };
@@ -37,10 +34,11 @@ class Board {
     for (let x = 0; x < CELL_COUNT; x++) {
       for (let y = 0; y < CELL_COUNT; y++) {
         const cell = new Cell(
-          x * CELL_SIZE,
-          y * CELL_SIZE,
+          x,
+          y,
           x % 2 === y % 2 ? BOARD_COLORS.white : BOARD_COLORS.black,
-          y < 2 || y > 5 ? this.createPiece(x, y) : ""
+          y < 2 || y > 5 ? this.createPiece(x, y) : "",
+          this.canvasState
         );
         this.data[`${x}${y}`] = cell;
       }
@@ -69,8 +67,10 @@ class Board {
   drawBoard = () => {
     Object.values(this.data).forEach((cell) => {
       const { x, y, isHighlighted, isTake } = cell;
+      const xCoord = x * this.cellSize();
+      const yCoord = y * this.cellSize();
       this.ctx.beginPath();
-      this.ctx.rect(x, y, CELL_SIZE, CELL_SIZE);
+      this.ctx.rect(xCoord, yCoord, this.cellSize(), this.cellSize());
       this.ctx.fillStyle = isTake ? BOARD_COLORS.take : cell.color;
       this.ctx.fill();
       if (isHighlighted && !isTake) this.drawHighlight(x, y);
@@ -81,9 +81,9 @@ class Board {
     this.ctx.beginPath();
     this.ctx.fillStyle = BOARD_COLORS.highlight;
     this.ctx.arc(
-      x + CELL_SIZE / 2,
-      y + CELL_SIZE / 2,
-      CELL_SIZE / 5,
+      x * this.cellSize() + this.cellSize() / 2,
+      y * this.cellSize() + this.cellSize() / 2,
+      this.cellSize() / 5,
       0,
       Math.PI * 2
     );
@@ -96,27 +96,27 @@ class Board {
       if (cell.piece.image && !cell.piece.isHidden) {
         this.ctx.drawImage(
           cell.piece.image,
-          cell.x,
-          cell.y,
-          CELL_SIZE - 5,
-          CELL_SIZE - 5
+          cell.x * this.cellSize(),
+          cell.y * this.cellSize(),
+          this.cellSize() - 5,
+          this.cellSize() - 5
         );
       }
 
       // Added text to cells
-      if (cell.coords.x === 0) {
+      if (cell.x === 0) {
         this.fillText(
           cell.key[1],
-          cell.x + CELL_SIZE / 16,
-          cell.y + CELL_SIZE / 5,
+          cell.x * this.cellSize() + this.cellSize() / 40,
+          cell.y * this.cellSize() + this.cellSize() / 6,
           cell
         );
       }
-      if (cell.coords.y === 7) {
+      if (cell.y === 7) {
         this.fillText(
           cell.key[0],
-          cell.x + CELL_SIZE / 1.2,
-          cell.y + CELL_SIZE / 1.05,
+          cell.x * this.cellSize() + this.cellSize() * 0.85,
+          cell.y * this.cellSize() + this.cellSize() * 0.95,
           cell
         );
       }
@@ -124,15 +124,16 @@ class Board {
   };
 
   drawCursorImage = (image, x, y) => {
-    this.ctx.drawImage(image, x, y, CELL_SIZE - 5, CELL_SIZE - 5);
+    this.ctx.drawImage(image, x, y, this.cellSize() - 5, this.cellSize() - 5);
   };
 
   fillText = (text, x, y, cell) => {
+    const fontSize = Math.floor(this.cellSize() / 6);
     this.ctx.fillStyle =
       cell.color === BOARD_COLORS.white
         ? BOARD_COLORS.black
         : BOARD_COLORS.white;
-    this.ctx.font = "bold 14px Arial";
+    this.ctx.font = `bold ${fontSize + "px"} Arial`;
     this.ctx.fillText(text, x, y);
   };
 
@@ -151,6 +152,10 @@ class Board {
       cell.isHighlighted = false;
       cell.isTake = false;
     });
+  };
+
+  handleCanvasResize = () => {
+    this.draw();
   };
 }
 

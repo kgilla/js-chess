@@ -1,4 +1,4 @@
-import { CELL_SIZE, LETTERS } from "../const.js";
+import { LETTERS } from "../const.js";
 
 class Cell {
   constructor(x, y, color, piece) {
@@ -6,8 +6,7 @@ class Cell {
     this.y = y;
     this.color = color;
     this.piece = piece;
-    this.coords = { x: x / CELL_SIZE, y: y / CELL_SIZE };
-    this.key = [LETTERS[this.coords.x], this.coords.y + 1];
+    this.key = [LETTERS[x], 8 - y];
     this.isHighlighted = false;
     this.isTake = false;
   }

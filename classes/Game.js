@@ -92,6 +92,7 @@ class Game {
   };
 
   handleMouseUp = (x, y) => {
+    if (!this.isDragging) return;
     this.isDragging = false;
     const newCell = this.board.data[`${x}${y}`];
     console.log(newCell);

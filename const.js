@@ -1,9 +1,5 @@
-export const CANVAS_HEIGHT = 640;
-export const CANVAS_WIDTH = 640;
 export const LINE_WIDTH = 1.5;
-
 export const CELL_COUNT = 8;
-export const CELL_SIZE = CANVAS_HEIGHT / CELL_COUNT;
 
 export const BOARD_COLORS = {
   white: "#eeeed2",

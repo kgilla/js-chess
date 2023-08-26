@@ -106,13 +106,13 @@ class Piece {
     if (this.type === PIECE_TYPES.pawn) {
       // Pawn
       if (this.color === PIECE_COLORS.white) {
-        return this.calculateMoves(currentCell.coords, [
+        return this.calculateMoves(currentCell, [
           [DIRECTIONS.north, this.moveCount === 0 ? 2 : 1],
           [DIRECTIONS.northEast, 1],
           [DIRECTIONS.northWest, 1],
         ]);
       } else {
-        return this.calculateMoves(currentCell.coords, [
+        return this.calculateMoves(currentCell, [
           [DIRECTIONS.south, this.moveCount === 0 ? 2 : 1],
           [DIRECTIONS.southEast, 1],
           [DIRECTIONS.southWest, 1],
@@ -121,7 +121,7 @@ class Piece {
     } else if (this.type === PIECE_TYPES.rook) {
       // Rook
       return this.calculateMoves(
-        currentCell.coords,
+        currentCell,
         Object.values(DIRECTIONS)
           .slice(0, 4)
           .map((dir) => [dir, CELL_COUNT])
@@ -129,14 +129,14 @@ class Piece {
     } else if (this.type === PIECE_TYPES.knight) {
       // Knight
       return this.calculateMoves(
-        currentCell.coords,
+        currentCell,
         Object.values(KNIGHT_DIRECTIONS).map((dir) => [dir, 1]),
         true
       );
     } else if (this.type === PIECE_TYPES.bishop) {
       // Bishop
       return this.calculateMoves(
-        currentCell.coords,
+        currentCell,
         Object.values(DIRECTIONS)
           .slice(4, 8)
           .map((dir) => [dir, CELL_COUNT])
@@ -144,13 +144,13 @@ class Piece {
     } else if (this.type === PIECE_TYPES.king) {
       // King
       return this.calculateMoves(
-        currentCell.coords,
+        currentCell,
         Object.values(DIRECTIONS).map((dir) => [dir, 1])
       );
     } else if (this.type === PIECE_TYPES.queen) {
       // Queen
       return this.calculateMoves(
-        currentCell.coords,
+        currentCell,
         Object.values(DIRECTIONS).map((dir) => [dir, CELL_COUNT])
       );
     }
