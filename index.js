@@ -24,7 +24,6 @@ const determineCoords = (e) => {
 
 // Event Handlers
 const handleMouseDown = (e) => {
-  console.log(e);
   if (e.which !== 1) return;
   const { cell } = determineCoords(e);
   const { x, y } = cell;
@@ -87,3 +86,16 @@ canvas.addEventListener("mouseup", handleMouseUp);
 
 resizeCanvas();
 const game = new Game(ctx);
+
+// Todo //
+/* 
+Calculate when in check
+Calculate when checkmate
+reformat code to stop mutating board.data state directly 
+Add history stepping
+add move timers
+Add sounds for piece placement
+Add ui elements to show more information
+Add backend for multiplayer
+Add chat
+ */

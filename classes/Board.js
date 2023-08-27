@@ -5,6 +5,8 @@ import {
   PIECE_TYPES,
 } from "../const.js";
 
+import { images } from "../images.js";
+
 import Cell from "./Cell.js";
 import Piece from "./Piece.js";
 
@@ -63,6 +65,7 @@ class Board {
 
   // Draws the board
   drawBoard = () => {
+    console.log("drawing");
     const cellSize = this.getCellSize();
     Object.values(this.data).forEach((cell) => {
       const { x, y, isHighlighted, isTake } = cell;
@@ -90,9 +93,10 @@ class Board {
       }
 
       // Draws pieces and text on board
-      if (cell.piece.image && !cell.piece.isHidden) {
+      if (cell.piece && !cell.piece.isHidden) {
+        const { type, color } = cell.piece;
         this.ctx.drawImage(
-          cell.piece.image,
+          images[type][color],
           xCoord,
           yCoord,
           cellSize - 5,
@@ -120,9 +124,10 @@ class Board {
     });
   };
 
-  drawCursorImage = (image, x, y) => {
+  drawCursorImage = (piece, x, y) => {
     const cellSize = this.getCellSize();
-    this.ctx.drawImage(image, x, y, cellSize - 5, cellSize - 5);
+    const { type, color } = piece;
+    this.ctx.drawImage(images[type][color], x, y, cellSize - 5, cellSize - 5);
   };
 
   fillText = (text, x, y, cell) => {
