@@ -7,7 +7,7 @@ class Cell {
     this.color = color;
     this.piece = piece;
     this.key = [LETTERS[x], 8 - y];
-    this.isHighlighted = false;
+    this.isMove = false;
     this.isTake = false;
   }
 }

@@ -1,6 +1,7 @@
 import Board from "./Board.js";
 
 import {
+  CELL_COUNT,
   DIRECTIONS,
   KNIGHT_DIRECTIONS,
   PIECE_COLORS,
@@ -9,15 +10,86 @@ import {
 
 class Game {
   constructor(ctx) {
-    this.ctx = ctx;
     this.board = new Board(ctx);
-    this.turn = PIECE_COLORS.white;
-    this.isDragging = false;
+    this.ctx = ctx;
     this.currentCell = "";
     this.currentPiece = "";
-    this.moveHistory = [];
+    this.dataToMutate = {};
+    this.isDragging = false;
     this.legalMoves = [];
+    this.moveHistory = [this.board.data];
+    this.turn = PIECE_COLORS.white;
   }
+
+  // Event handlers
+
+  // Clones board data to use in mutations, flags ui functions, and creates move array for selected piece
+  handleMouseDown = (x, y) => {
+    const cellClicked = this.board.data[`${x}${y}`];
+    if (cellClicked.piece && cellClicked.piece.color === this.turn) {
+      this.dataToMutate = structuredClone(this.board.data);
+      const cell = this.dataToMutate[`${x}${y}`];
+      this.currentCell = cell;
+      this.currentPiece = this.currentCell.piece;
+      this.isDragging = true;
+      this.createLegalMoves();
+    }
+  };
+
+  // Hides selected piece and renders it on user's cursor instead
+  handleMouseMove = (x, y) => {
+    if (!this.isDragging) return;
+    this.currentPiece.isHidden = true;
+    this.board.draw(this.dataToMutate);
+    this.board.drawCursorImage(this.currentPiece, x, y);
+  };
+
+  // Determines if move is allowed and finishes mutating data before
+  handleMouseUp = (x, y) => {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    const newCell = this.dataToMutate[`${x}${y}`];
+    newCell.piece = this.currentPiece;
+    if (this.legalMoves.some((move) => move === newCell)) {
+      this.cleanCells();
+      this.handleTurnFinish();
+      this.board.data = this.dataToMutate;
+      this.board.draw();
+      this.moveHistory.push(this.board.data);
+    } else {
+      this.board.draw();
+    }
+    this.clearState();
+  };
+
+  cleanCells = () => {
+    this.currentCell.piece = "";
+    this.currentPiece.isHidden = false;
+    this.removeHighlights();
+  };
+  // Removes all highlight flags from cells
+  removeHighlights = () => {
+    this.legalMoves.forEach((cell) => {
+      cell.isMove = false;
+      cell.isTake = false;
+    });
+  };
+
+  // Increments move counter
+  handleTurnFinish = () => {
+    this.currentPiece.hasMoved = true;
+    this.turn =
+      this.turn === PIECE_COLORS.white
+        ? PIECE_COLORS.black
+        : PIECE_COLORS.white;
+  };
+
+  clearState = () => {
+    this.currentPiece = "";
+    this.currentCell = "";
+    this.legalMoves = [];
+    this.dataToMutate = {};
+  };
 
   // Checks if coordinates are within bounds
   insideBounds = (coords) => {
@@ -106,18 +178,18 @@ class Game {
 
   // Shows all potential moves on game board within confines of board
   showMoves = (currentCell) => {
-    const { type, color, moveCount } = this.currentPiece;
+    const { type, color, hasMoved } = this.currentPiece;
     if (type === PIECE_TYPES.pawn) {
       // Pawn
       if (color === PIECE_COLORS.white) {
         return this.calculateMoves(currentCell, [
-          [DIRECTIONS.north, moveCount === 0 ? 2 : 1],
+          [DIRECTIONS.north, hasMoved ? 1 : 2],
           [DIRECTIONS.northEast, 1],
           [DIRECTIONS.northWest, 1],
         ]);
       } else {
         return this.calculateMoves(currentCell, [
-          [DIRECTIONS.south, moveCount === 0 ? 2 : 1],
+          [DIRECTIONS.south, hasMoved ? 1 : 2],
           [DIRECTIONS.southEast, 1],
           [DIRECTIONS.southWest, 1],
         ]);
@@ -160,103 +232,46 @@ class Game {
     }
   };
 
+  // Takes array of moves and determines which moves can happen within the context of the game
   createLegalMoves = () => {
     const moveData = this.showMoves(this.currentCell);
-    let legalMoves = [];
     let currentDirection = "";
 
-    if (
-      this.currentPiece === PIECE_TYPES.pawn &&
-      this.currentPiece.moveCount > 0
-    ) {
+    if (this.currentPiece === PIECE_TYPES.pawn && this.currentPiece.hasMoved) {
       moveData.splice(1, 1);
     }
 
     for (const [direction, moves] of Object.entries(moveData)) {
       moves.forEach((move) => {
-        const cellToTest = this.board.data[move.join("")];
-        let data = { cell: cellToTest, isTake: false };
+        const cell = this.dataToMutate[move.join("")];
         if (this.currentPiece.type === PIECE_TYPES.pawn) {
           if (
             direction === DIRECTIONS.north ||
             direction === DIRECTIONS.south
           ) {
-            legalMoves.push(data);
+            cell.isMove = true;
+            this.legalMoves.push(cell);
           } else if (
-            cellToTest.piece &&
-            cellToTest.piece.color !== this.currentPiece.color
+            cell.piece &&
+            cell.piece.color !== this.currentPiece.color
           ) {
-            legalMoves.push({ ...data, isTake: true });
+            cell.isTake = true;
+            this.legalMoves.push(cell);
           }
         } else {
-          if (cellToTest.piece && currentDirection !== direction) {
-            if (cellToTest.piece.color !== this.currentPiece.color) {
-              legalMoves.push({ ...data, isTake: true });
+          if (cell.piece && currentDirection !== direction) {
+            if (cell.piece.color !== this.currentPiece.color) {
+              cell.isTake = true;
+              this.legalMoves.push(cell);
             }
             currentDirection = direction;
           } else if (currentDirection !== direction) {
-            legalMoves.push(data);
+            cell.isMove = true;
+            this.legalMoves.push(cell);
           }
         }
       });
     }
-
-    this.board.highlightMoves(legalMoves);
-    this.legalMoves = legalMoves.map((move) => move.cell);
-  };
-
-  handleTurnFinish = () => {
-    //checkWin
-    // check for check
-    this.currentPiece.moveCount++;
-    this.turn =
-      this.turn === PIECE_COLORS.white
-        ? PIECE_COLORS.black
-        : PIECE_COLORS.white;
-    this.clearState();
-  };
-
-  clearState = () => {
-    this.currentPiece = "";
-    this.currentCell = "";
-  };
-
-  // Event handlers
-  handleMouseDown = (x, y) => {
-    const cell = this.board.data[`${x}${y}`];
-    const clone = structuredClone(this.board.data);
-    this.currentCell = cell;
-    if (cell.piece && cell.piece.color === this.turn) {
-      this.isDragging = true;
-      this.currentPiece = this.currentCell.piece;
-      this.createLegalMoves();
-    }
-  };
-
-  handleMouseMove = (x, y) => {
-    if (!this.isDragging) return;
-    this.currentPiece.isHidden = true;
-    this.board.draw();
-    this.board.drawCursorImage(this.currentPiece, x, y);
-  };
-
-  handleMouseUp = (x, y) => {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-    const newCell = this.board.data[`${x}${y}`];
-    if (this.legalMoves.some((move) => move === newCell)) {
-      this.currentCell.piece = "";
-      this.currentPiece.isHidden = false;
-      newCell.piece = this.currentPiece;
-      this.board.removeHighlights();
-      this.board.draw();
-      this.handleTurnFinish();
-    } else {
-      if (this.currentPiece) this.currentPiece.isHidden = false;
-      this.board.removeHighlights();
-      this.board.draw();
-    }
-    this.clearState();
   };
 }
 

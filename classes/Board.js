@@ -24,9 +24,9 @@ class Board {
     this.drawBoard();
   };
 
-  draw = () => {
+  draw = (data) => {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this.drawBoard();
+    this.drawBoard(data);
   };
 
   // Creates board data cells containing cells and pieces
@@ -64,11 +64,10 @@ class Board {
   };
 
   // Draws the board
-  drawBoard = () => {
-    console.log("drawing");
+  drawBoard = (data) => {
     const cellSize = this.getCellSize();
-    Object.values(this.data).forEach((cell) => {
-      const { x, y, isHighlighted, isTake } = cell;
+    Object.values(data ? data : this.data).forEach((cell) => {
+      const { x, y, isMove, isTake } = cell;
 
       // Draws board background
       const xCoord = x * cellSize;
@@ -79,7 +78,7 @@ class Board {
       this.ctx.fill();
 
       // Draws helpful circles to illustrate available moves
-      if (isHighlighted && !isTake) {
+      if (isMove && !isTake) {
         this.ctx.beginPath();
         this.ctx.fillStyle = BOARD_COLORS.highlight;
         this.ctx.arc(
@@ -138,24 +137,6 @@ class Board {
         : BOARD_COLORS.white;
     this.ctx.font = `bold ${fontSize + "px"} Arial`;
     this.ctx.fillText(text, x, y);
-  };
-
-  // Creates an array of cells to highlight to show the user where piece can move
-  highlightMoves = (legalMoves) => {
-    legalMoves.forEach((move) => {
-      const { cell, isTake } = move;
-      cell.isHighlighted = true;
-      cell.isTake = isTake;
-      this.highlightedCells.push(cell);
-    });
-  };
-
-  // Removes all highlight flags from cells
-  removeHighlights = () => {
-    this.highlightedCells.forEach((cell) => {
-      cell.isHighlighted = false;
-      cell.isTake = false;
-    });
   };
 }
 

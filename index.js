@@ -91,6 +91,7 @@ const game = new Game(ctx);
 /* 
 Calculate when in check
 Calculate when checkmate
+Add castling
 reformat code to stop mutating board.data state directly 
 Add history stepping
 add move timers
