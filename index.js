@@ -6,36 +6,41 @@ const ctx = canvas.getContext("2d");
 
 ctx.lineWidth = LINE_WIDTH;
 
-const determineCoords = (e, cell = false) => {
+const determineCoords = (e) => {
   const rect = e.target.getBoundingClientRect();
   const { clientX, clientY } = e;
   const cellSize = canvas.width / CELL_COUNT;
-
-  if (cell) {
-    const x = Math.floor((clientX - rect.left) / cellSize);
-    const y = Math.floor((clientY - rect.top) / cellSize);
-    return { x, y };
-  } else {
-    const x = clientX - rect.left - cellSize / 2;
-    const y = clientY - rect.top - cellSize / 2;
-    return { x, y };
-  }
+  return {
+    cursor: {
+      x: clientX - rect.left - cellSize / 2,
+      y: clientY - rect.top - cellSize / 2,
+    },
+    cell: {
+      x: Math.floor((clientX - rect.left) / cellSize),
+      y: Math.floor((clientY - rect.top) / cellSize),
+    },
+  };
 };
 
 // Event Handlers
 const handleMouseDown = (e) => {
+  console.log(e);
   if (e.which !== 1) return;
-  const { x, y } = determineCoords(e, true);
+  const { cell } = determineCoords(e);
+  const { x, y } = cell;
   game.handleMouseDown(x, y);
 };
 
 const handleMouseMove = (e) => {
-  const { x, y } = determineCoords(e);
+  const { cursor, cell } = determineCoords(e);
+  const { x, y } = cursor;
+  changeCursor(cell);
   game.handleMouseMove(x, y);
 };
 
 const handleMouseUp = (e) => {
-  const { x, y } = determineCoords(e, true);
+  const { cell } = determineCoords(e);
+  const { x, y } = cell;
   game.handleMouseUp(x, y);
 };
 
@@ -55,7 +60,23 @@ const resizeCanvas = () => {
 
 const handleResize = () => {
   resizeCanvas();
-  game.board.handleCanvasResize();
+  if (game) game.board.draw();
+};
+
+const changeCursor = (cell) => {
+  const data = game.board.data[`${cell.x}${cell.y}`];
+  if (game.isDragging) {
+    canvas.style.cursor = "grabbing";
+  } else if (
+    data &&
+    data.piece &&
+    game.turn === data.piece.color &&
+    !game.isDragging
+  ) {
+    canvas.style.cursor = "grab";
+  } else {
+    canvas.style.cursor = "auto";
+  }
 };
 
 // Event Listeners

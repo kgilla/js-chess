@@ -4,6 +4,7 @@ import { DIRECTIONS, PIECE_COLORS, PIECE_TYPES } from "../const.js";
 
 class Game {
   constructor(ctx) {
+    this.ctx = ctx;
     this.board = new Board(ctx);
     this.turn = PIECE_COLORS.white;
     this.isDragging = false;
@@ -95,7 +96,6 @@ class Game {
     if (!this.isDragging) return;
     this.isDragging = false;
     const newCell = this.board.data[`${x}${y}`];
-    console.log(newCell);
     if (this.legalMoves.some((move) => move === newCell)) {
       this.currentCell.piece = "";
       this.currentPiece.isHidden = false;

@@ -13,20 +13,18 @@ class Board {
     this.ctx = ctx;
     this.data = {};
     this.highlightedCells = [];
-    this.cellSize = () => this.ctx.canvas.width / CELL_COUNT;
+    this.getCellSize = () => this.ctx.canvas.width / CELL_COUNT;
     this.init();
   }
 
   init = () => {
     this.createBoardData();
     this.drawBoard();
-    this.drawPieces();
   };
 
   draw = () => {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     this.drawBoard();
-    this.drawPieces();
   };
 
   // Creates board data cells containing cells and pieces
@@ -65,41 +63,40 @@ class Board {
 
   // Draws the board
   drawBoard = () => {
+    const cellSize = this.getCellSize();
     Object.values(this.data).forEach((cell) => {
       const { x, y, isHighlighted, isTake } = cell;
-      const xCoord = x * this.cellSize();
-      const yCoord = y * this.cellSize();
+
+      // Draws board background
+      const xCoord = x * cellSize;
+      const yCoord = y * cellSize;
       this.ctx.beginPath();
-      this.ctx.rect(xCoord, yCoord, this.cellSize(), this.cellSize());
+      this.ctx.rect(xCoord, yCoord, cellSize, cellSize);
       this.ctx.fillStyle = isTake ? BOARD_COLORS.take : cell.color;
       this.ctx.fill();
-      if (isHighlighted && !isTake) this.drawHighlight(x, y);
-    });
-  };
 
-  drawHighlight = (x, y) => {
-    this.ctx.beginPath();
-    this.ctx.fillStyle = BOARD_COLORS.highlight;
-    this.ctx.arc(
-      x * this.cellSize() + this.cellSize() / 2,
-      y * this.cellSize() + this.cellSize() / 2,
-      this.cellSize() / 5,
-      0,
-      Math.PI * 2
-    );
-    this.ctx.fill();
-  };
+      // Draws helpful circles to illustrate available moves
+      if (isHighlighted && !isTake) {
+        this.ctx.beginPath();
+        this.ctx.fillStyle = BOARD_COLORS.highlight;
+        this.ctx.arc(
+          xCoord + cellSize / 2,
+          yCoord + cellSize / 2,
+          cellSize / 5,
+          0,
+          Math.PI * 2
+        );
+        this.ctx.fill();
+      }
 
-  // Draws pieces and text on board
-  drawPieces = () => {
-    Object.values(this.data).forEach((cell) => {
+      // Draws pieces and text on board
       if (cell.piece.image && !cell.piece.isHidden) {
         this.ctx.drawImage(
           cell.piece.image,
-          cell.x * this.cellSize(),
-          cell.y * this.cellSize(),
-          this.cellSize() - 5,
-          this.cellSize() - 5
+          xCoord,
+          yCoord,
+          cellSize - 5,
+          cellSize - 5
         );
       }
 
@@ -107,16 +104,16 @@ class Board {
       if (cell.x === 0) {
         this.fillText(
           cell.key[1],
-          cell.x * this.cellSize() + this.cellSize() / 40,
-          cell.y * this.cellSize() + this.cellSize() / 6,
+          xCoord + cellSize / 40,
+          yCoord + cellSize / 6,
           cell
         );
       }
       if (cell.y === 7) {
         this.fillText(
           cell.key[0],
-          cell.x * this.cellSize() + this.cellSize() * 0.85,
-          cell.y * this.cellSize() + this.cellSize() * 0.95,
+          xCoord + cellSize * 0.85,
+          yCoord + cellSize * 0.95,
           cell
         );
       }
@@ -124,11 +121,12 @@ class Board {
   };
 
   drawCursorImage = (image, x, y) => {
-    this.ctx.drawImage(image, x, y, this.cellSize() - 5, this.cellSize() - 5);
+    const cellSize = this.getCellSize();
+    this.ctx.drawImage(image, x, y, cellSize - 5, cellSize - 5);
   };
 
   fillText = (text, x, y, cell) => {
-    const fontSize = Math.floor(this.cellSize() / 6);
+    const fontSize = Math.floor(this.getCellSize() / 6);
     this.ctx.fillStyle =
       cell.color === BOARD_COLORS.white
         ? BOARD_COLORS.black
@@ -147,15 +145,12 @@ class Board {
     });
   };
 
+  // Removes all highlight flags from cells
   removeHighlights = () => {
     this.highlightedCells.forEach((cell) => {
       cell.isHighlighted = false;
       cell.isTake = false;
     });
-  };
-
-  handleCanvasResize = () => {
-    this.draw();
   };
 }
 
