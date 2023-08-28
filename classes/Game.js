@@ -15,7 +15,9 @@ class Game {
     this.currentCell = "";
     this.currentPiece = "";
     this.dataToMutate = {};
+    this.historyIndex = "";
     this.isDragging = false;
+    this.isViewingHistory = false;
     this.legalMoves = [];
     this.moveHistory = [this.board.data];
     this.turn = PIECE_COLORS.white;
@@ -25,6 +27,11 @@ class Game {
 
   // Clones board data to use in mutations, flags ui functions, and creates move array for selected piece
   handleMouseDown = (x, y) => {
+    if (this.isViewingHistory) {
+      this.board.draw();
+      this.isViewingHistory = false;
+      this.historyIndex = "";
+    }
     const cellClicked = this.board.data[`${x}${y}`];
     if (cellClicked.piece && cellClicked.piece.color === this.turn) {
       this.dataToMutate = structuredClone(this.board.data);
@@ -32,7 +39,7 @@ class Game {
       this.currentCell = cell;
       this.currentPiece = this.currentCell.piece;
       this.isDragging = true;
-      this.createLegalMoves();
+      this.legalMoves = this.createLegalMoves(this.currentPiece, true);
     }
   };
 
@@ -51,15 +58,38 @@ class Game {
     const newCell = this.dataToMutate[`${x}${y}`];
     newCell.piece = this.currentPiece;
     if (this.legalMoves.some((move) => move === newCell)) {
+      this.currentPiece.coords = { x, y };
       this.cleanCells();
-      this.handleTurnFinish();
       this.board.data = this.dataToMutate;
+      this.moveHistory.push(this.dataToMutate);
+      this.handleTurnFinish();
       this.board.draw();
-      this.moveHistory.push(this.board.data);
+      this.findPieces(this.turn);
     } else {
       this.board.draw();
     }
     this.clearState();
+  };
+
+  findPieces = (color) => {
+    let moves = [];
+    console.log(color);
+    const pieceArray = Object.values(this.board.data)
+      .filter((cell) => cell.piece.color === color)
+      .map((cell) => {
+        return cell.piece;
+      });
+    console.log(pieceArray);
+
+    pieceArray.forEach((piece) => {
+      const moveArr = this.createLegalMoves(piece);
+      if (moveArr.length) moves.push(moveArr);
+    });
+    console.log(moves.flat());
+
+    console.log(
+      moves.flat().filter((move) => move.piece && move.piece.color !== color)
+    );
   };
 
   cleanCells = () => {
@@ -89,6 +119,27 @@ class Game {
     this.currentCell = "";
     this.legalMoves = [];
     this.dataToMutate = {};
+  };
+
+  viewHistory = (direction) => {
+    if (this.moveHistory.length < 2) return;
+    this.isViewingHistory = true;
+    if (direction === "forwards") {
+      if (this.historyIndex < this.moveHistory.length - 1) {
+        this.historyIndex += 1;
+        this.board.draw(this.moveHistory[this.historyIndex]);
+      } else {
+        return;
+      }
+    } else if (direction === "reverse") {
+      if (this.historyIndex && this.historyIndex > -1) {
+        this.historyIndex -= 1;
+        this.board.draw(this.moveHistory[this.historyIndex]);
+      } else {
+        this.historyIndex = this.moveHistory.length - 2;
+        this.board.draw(this.moveHistory[this.historyIndex]);
+      }
+    }
   };
 
   // Checks if coordinates are within bounds
@@ -177,18 +228,18 @@ class Game {
   };
 
   // Shows all potential moves on game board within confines of board
-  showMoves = (currentCell) => {
-    const { type, color, hasMoved } = this.currentPiece;
+  showMoves = (piece) => {
+    const { type, color, hasMoved, coords } = piece;
     if (type === PIECE_TYPES.pawn) {
       // Pawn
       if (color === PIECE_COLORS.white) {
-        return this.calculateMoves(currentCell, [
+        return this.calculateMoves(coords, [
           [DIRECTIONS.north, hasMoved ? 1 : 2],
           [DIRECTIONS.northEast, 1],
           [DIRECTIONS.northWest, 1],
         ]);
       } else {
-        return this.calculateMoves(currentCell, [
+        return this.calculateMoves(coords, [
           [DIRECTIONS.south, hasMoved ? 1 : 2],
           [DIRECTIONS.southEast, 1],
           [DIRECTIONS.southWest, 1],
@@ -197,7 +248,7 @@ class Game {
     } else if (type === PIECE_TYPES.rook) {
       // Rook
       return this.calculateMoves(
-        currentCell,
+        coords,
         Object.values(DIRECTIONS)
           .slice(0, 4)
           .map((dir) => [dir, CELL_COUNT])
@@ -205,14 +256,14 @@ class Game {
     } else if (type === PIECE_TYPES.knight) {
       // Knight
       return this.calculateMoves(
-        currentCell,
+        coords,
         Object.values(KNIGHT_DIRECTIONS).map((dir) => [dir, 1]),
         true
       );
     } else if (type === PIECE_TYPES.bishop) {
       // Bishop
       return this.calculateMoves(
-        currentCell,
+        coords,
         Object.values(DIRECTIONS)
           .slice(4, 8)
           .map((dir) => [dir, CELL_COUNT])
@@ -220,58 +271,57 @@ class Game {
     } else if (type === PIECE_TYPES.king) {
       // King
       return this.calculateMoves(
-        currentCell,
+        coords,
         Object.values(DIRECTIONS).map((dir) => [dir, 1])
       );
     } else if (type === PIECE_TYPES.queen) {
       // Queen
       return this.calculateMoves(
-        currentCell,
+        coords,
         Object.values(DIRECTIONS).map((dir) => [dir, CELL_COUNT])
       );
     }
   };
 
   // Takes array of moves and determines which moves can happen within the context of the game
-  createLegalMoves = () => {
-    const moveData = this.showMoves(this.currentCell);
+  createLegalMoves = (piece, addHints = false) => {
+    const moveData = this.showMoves(piece);
     let currentDirection = "";
+    let legalMoves = [];
 
-    if (this.currentPiece === PIECE_TYPES.pawn && this.currentPiece.hasMoved) {
+    if (piece === PIECE_TYPES.pawn && piece.hasMoved) {
       moveData.splice(1, 1);
     }
 
     for (const [direction, moves] of Object.entries(moveData)) {
       moves.forEach((move) => {
         const cell = this.dataToMutate[move.join("")];
-        if (this.currentPiece.type === PIECE_TYPES.pawn) {
+        if (piece.type === PIECE_TYPES.pawn) {
           if (
             direction === DIRECTIONS.north ||
             direction === DIRECTIONS.south
           ) {
-            cell.isMove = true;
-            this.legalMoves.push(cell);
-          } else if (
-            cell.piece &&
-            cell.piece.color !== this.currentPiece.color
-          ) {
-            cell.isTake = true;
-            this.legalMoves.push(cell);
+            if (addHints) cell.isMove = true;
+            legalMoves.push(cell);
+          } else if (cell.piece && cell.piece.color !== piece.color) {
+            if (addHints) cell.isTake = true;
+            legalMoves.push(cell);
           }
         } else {
           if (cell.piece && currentDirection !== direction) {
-            if (cell.piece.color !== this.currentPiece.color) {
-              cell.isTake = true;
-              this.legalMoves.push(cell);
+            if (cell.piece.color !== piece.color) {
+              if (addHints) cell.isTake = true;
+              legalMoves.push(cell);
             }
             currentDirection = direction;
           } else if (currentDirection !== direction) {
-            cell.isMove = true;
-            this.legalMoves.push(cell);
+            if (addHints) cell.isMove = true;
+            legalMoves.push(cell);
           }
         }
       });
     }
+    return legalMoves;
   };
 }
 

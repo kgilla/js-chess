@@ -14,6 +14,7 @@ class Board {
   constructor(ctx) {
     this.ctx = ctx;
     this.data = {};
+    this.pieceData = {};
     this.highlightedCells = [];
     this.getCellSize = () => this.ctx.canvas.width / CELL_COUNT;
     this.init();
@@ -49,17 +50,17 @@ class Board {
   createPiece = (x, y) => {
     const color = y === 0 || y === 1 ? PIECE_COLORS.black : PIECE_COLORS.white;
     if (y === 1 || y == 6) {
-      return new Piece(PIECE_TYPES.pawn, color);
+      return new Piece(PIECE_TYPES.pawn, color, { x, y });
     } else if (x === 0 || x === 7) {
-      return new Piece(PIECE_TYPES.rook, color);
+      return new Piece(PIECE_TYPES.rook, color, { x, y });
     } else if (x === 1 || x == 6) {
-      return new Piece(PIECE_TYPES.knight, color);
+      return new Piece(PIECE_TYPES.knight, color, { x, y });
     } else if (x === 2 || x === 5) {
-      return new Piece(PIECE_TYPES.bishop, color);
+      return new Piece(PIECE_TYPES.bishop, color, { x, y });
     } else if (x === 3) {
-      return new Piece(PIECE_TYPES.king, color);
+      return new Piece(PIECE_TYPES.king, color, { x, y });
     } else {
-      return new Piece(PIECE_TYPES.queen, color);
+      return new Piece(PIECE_TYPES.queen, color, { x, y });
     }
   };
 

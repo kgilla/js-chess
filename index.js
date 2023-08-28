@@ -3,6 +3,8 @@ import Game from "./classes/Game.js";
 
 const canvas = document.querySelector("#canvas");
 const ctx = canvas.getContext("2d");
+const forwards = document.querySelector("#forwards");
+const reverse = document.querySelector("#reverse");
 
 ctx.lineWidth = LINE_WIDTH;
 
@@ -78,11 +80,23 @@ const changeCursor = (cell) => {
   }
 };
 
+const handleForwardsClick = () => {
+  game.viewHistory("forwards");
+};
+
+const handleReverseClick = () => {
+  game.viewHistory("reverse");
+};
+
 // Event Listeners
 window.addEventListener("resize", handleResize);
+
 canvas.addEventListener("mousedown", handleMouseDown);
 canvas.addEventListener("mousemove", handleMouseMove);
 canvas.addEventListener("mouseup", handleMouseUp);
+
+forwards.addEventListener("click", handleForwardsClick);
+reverse.addEventListener("click", handleReverseClick);
 
 resizeCanvas();
 const game = new Game(ctx);
@@ -92,8 +106,7 @@ const game = new Game(ctx);
 Calculate when in check
 Calculate when checkmate
 Add castling
-reformat code to stop mutating board.data state directly 
-Add history stepping
+add history visualization
 add move timers
 Add sounds for piece placement
 Add ui elements to show more information
