@@ -28,6 +28,7 @@ class Game {
   // Clones board data to use in mutations, flags ui functions, and creates move array for selected piece
   handleMouseDown = (x, y) => {
     if (this.isViewingHistory) {
+      // If viewing history, swaps board back to current state
       this.board.draw();
       this.isViewingHistory = false;
       this.historyIndex = "";
@@ -39,7 +40,12 @@ class Game {
       this.currentCell = cell;
       this.currentPiece = this.currentCell.piece;
       this.isDragging = true;
-      this.legalMoves = this.createLegalMoves(this.currentPiece, true);
+      const availableMoves = this.createLegalMoves(
+        this.dataToMutate,
+        this.currentPiece,
+        true
+      );
+      this.legalMoves = this.filterChecks(availableMoves, this.currentPiece);
     }
   };
 
@@ -59,37 +65,68 @@ class Game {
     newCell.piece = this.currentPiece;
     if (this.legalMoves.some((move) => move === newCell)) {
       this.currentPiece.coords = { x, y };
-      this.cleanCells();
-      this.board.data = this.dataToMutate;
-      this.moveHistory.push(this.dataToMutate);
       this.handleTurnFinish();
-      this.board.draw();
-      this.findPieces(this.turn);
-    } else {
-      this.board.draw();
+      console.log(
+        this.turn + " is in check? " + this.isInCheck(this.board.data)
+      );
     }
+    this.board.draw();
     this.clearState();
   };
 
-  findPieces = (color) => {
-    let moves = [];
-    console.log(color);
-    const pieceArray = Object.values(this.board.data)
+  isCheckmate = () => {
+    // array of current pieces -> for each piece -> generate legal moves -> this.filterChecks -> if ! moves, checkmate
+  };
+
+  filterChecks = (legalMoves, pieceToMove) => {
+    // Filters out legal moves that leave the current player in check
+    const pieceCopy = structuredClone(pieceToMove);
+    const { x, y } = pieceCopy.coords;
+    const filteredMoves = [];
+
+    legalMoves.forEach((move) => {
+      const boardCopy = structuredClone(this.board.data);
+      const currentCell = boardCopy[`${x}${y}`];
+      const cellToMoveTo = boardCopy[`${move.x}${move.y}`];
+      currentCell.piece = "";
+      cellToMoveTo.piece = pieceCopy;
+
+      const isCheck = this.isInCheck(boardCopy);
+      if (isCheck) {
+        const cell = this.dataToMutate[`${move.x}${move.y}`];
+        cell.isMove = false;
+        cell.isTake = false;
+      } else {
+        filteredMoves.push(move);
+      }
+    });
+
+    return filteredMoves;
+  };
+
+  isInCheck = (boardState) => {
+    // Creates array of current pieces and their respecitve location, filters bases on function input
+    const moves = [];
+    const color =
+      this.turn === PIECE_COLORS.white
+        ? PIECE_COLORS.black
+        : PIECE_COLORS.white;
+
+    const pieceArray = Object.values(boardState)
       .filter((cell) => cell.piece.color === color)
       .map((cell) => {
         return cell.piece;
       });
-    console.log(pieceArray);
 
     pieceArray.forEach((piece) => {
-      const moveArr = this.createLegalMoves(piece);
+      const moveArr = this.createLegalMoves(boardState, piece);
       if (moveArr.length) moves.push(moveArr);
     });
-    console.log(moves.flat());
 
-    console.log(
-      moves.flat().filter((move) => move.piece && move.piece.color !== color)
-    );
+    const isCheck = moves
+      .flat()
+      .some((move) => move.piece.type === PIECE_TYPES.king);
+    return isCheck;
   };
 
   cleanCells = () => {
@@ -107,7 +144,10 @@ class Game {
 
   // Increments move counter
   handleTurnFinish = () => {
+    this.cleanCells();
     this.currentPiece.hasMoved = true;
+    this.board.data = this.dataToMutate;
+    this.moveHistory.push(this.dataToMutate);
     this.turn =
       this.turn === PIECE_COLORS.white
         ? PIECE_COLORS.black
@@ -284,7 +324,7 @@ class Game {
   };
 
   // Takes array of moves and determines which moves can happen within the context of the game
-  createLegalMoves = (piece, addHints = false) => {
+  createLegalMoves = (boardState, piece, addHints = false) => {
     const moveData = this.showMoves(piece);
     let currentDirection = "";
     let legalMoves = [];
@@ -295,18 +335,22 @@ class Game {
 
     for (const [direction, moves] of Object.entries(moveData)) {
       moves.forEach((move) => {
-        const cell = this.dataToMutate[move.join("")];
+        const cell = boardState[move.join("")];
+        // Pawn Logic
         if (piece.type === PIECE_TYPES.pawn) {
           if (
             direction === DIRECTIONS.north ||
             direction === DIRECTIONS.south
           ) {
-            if (addHints) cell.isMove = true;
-            legalMoves.push(cell);
+            if (!cell.piece) {
+              if (addHints) cell.isMove = true;
+              legalMoves.push(cell);
+            }
           } else if (cell.piece && cell.piece.color !== piece.color) {
             if (addHints) cell.isTake = true;
             legalMoves.push(cell);
           }
+          // Other Piece Logic
         } else {
           if (cell.piece && currentDirection !== direction) {
             if (cell.piece.color !== piece.color) {
