@@ -48,12 +48,15 @@ const handleMouseUp = (e) => {
 const resizeCanvas = () => {
   const { innerWidth, innerHeight } = window;
   let sideLength = 0;
-  if (innerHeight > innerWidth) {
+  if (innerHeight > innerWidth * 1.5) {
     // Phone screens use width to determine max board size
     sideLength = Math.floor(innerWidth * 0.9);
+  } else if (innerHeight > innerWidth) {
+    // Smaller screens use width to determine max board size
+    sideLength = Math.floor(innerWidth * 0.7);
   } else {
     // Desktop screens use height to determine max board size
-    sideLength = Math.floor(innerHeight * 0.8);
+    sideLength = Math.floor(innerHeight * 0.66);
   }
   canvas.width = sideLength;
   canvas.height = sideLength;
@@ -103,8 +106,6 @@ const game = new Game(ctx);
 
 // Todo //
 /* 
-Calculate when in check
-Calculate when checkmate
 Add castling
 add history visualization
 add move timers

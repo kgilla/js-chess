@@ -66,16 +66,38 @@ class Game {
     if (this.legalMoves.some((move) => move === newCell)) {
       this.currentPiece.coords = { x, y };
       this.handleTurnFinish();
-      console.log(
-        this.turn + " is in check? " + this.isInCheck(this.board.data)
-      );
+      this.isCheckmate(structuredClone(this.board.data));
+      const check = this.isInCheck(this.board.data);
+      if (check) console.log(this.turn + " is in check");
     }
     this.board.draw();
     this.clearState();
   };
 
-  isCheckmate = () => {
+  getPieces = (color, boardState) => {
+    return Object.values(boardState)
+      .filter((cell) => cell.piece.color === color)
+      .map((cell) => {
+        return cell.piece;
+      });
+  };
+
+  isCheckmate = (boardState) => {
     // array of current pieces -> for each piece -> generate legal moves -> this.filterChecks -> if ! moves, checkmate
+    const pieceArray = this.getPieces(this.turn, boardState);
+    let isCheckmate = true;
+
+    for (let i = 0; i < pieceArray.length; i++) {
+      const availableMoves = this.createLegalMoves(boardState, pieceArray[i]);
+      this.legalMoves = this.filterChecks(availableMoves, pieceArray[i]);
+      if (this.legalMoves.length > 0) {
+        isCheckmate = false;
+        break;
+      }
+    }
+
+    if (isCheckmate) console.log("CHECKMATE");
+    return isCheckmate;
   };
 
   filterChecks = (legalMoves, pieceToMove) => {
@@ -112,11 +134,7 @@ class Game {
         ? PIECE_COLORS.black
         : PIECE_COLORS.white;
 
-    const pieceArray = Object.values(boardState)
-      .filter((cell) => cell.piece.color === color)
-      .map((cell) => {
-        return cell.piece;
-      });
+    const pieceArray = this.getPieces(color, boardState);
 
     pieceArray.forEach((piece) => {
       const moveArr = this.createLegalMoves(boardState, piece);
@@ -126,6 +144,7 @@ class Game {
     const isCheck = moves
       .flat()
       .some((move) => move.piece.type === PIECE_TYPES.king);
+
     return isCheck;
   };
 
